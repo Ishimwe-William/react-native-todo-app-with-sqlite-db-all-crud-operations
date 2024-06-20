@@ -221,7 +221,15 @@ const HomeScreen = () => {
     const completeTodo = async (id) => {
         const [todo] = todos.filter((item) => item.id === id);
         const updatedTodo = {...todo, isComplete: !todo.isComplete};
-        await updateTodo(db, id, updatedTodo);
+        await updateTodo(
+            db,
+            id,
+            updatedTodo.value,
+            updatedTodo.description,
+            updatedTodo.isComplete,
+            updatedTodo.toBeComplete,
+            updatedTodo.reminder
+        );
         await fetchTodos();
     };
 
