@@ -11,6 +11,7 @@ import {
     TouchableOpacity,
     TextInput,
     Animated,
+    RefreshControl,
 } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
@@ -233,6 +234,11 @@ const HomeScreen = () => {
         await fetchTodos();
     };
 
+    const handleRefresh = async () => {
+        setIsLoading(true);
+        await fetchTodos()
+        setIsLoading(false);
+    }
     const handleReschedule = async (id) => {
         const result = await getTodoById(db, id);
         const todo = result[0];
@@ -402,6 +408,12 @@ const HomeScreen = () => {
                     <FlatList
                         ref={flatListRef}
                         data={sortedDates}
+                        refreshControl={
+                            <RefreshControl
+                                refreshing={isLoading}
+                                onRefresh={handleRefresh}
+                            />
+                        }
                         keyExtractor={(item) => item}
                         viewabilityConfig={viewabilityConfig}
                         onViewableItemsChanged={viewableItemsChanged.current}
