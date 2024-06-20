@@ -115,7 +115,13 @@ export const handleRescheduleTodo = async (id, db, setOpenModal, setActionType, 
         isComplete: todo.isComplete,
     });
 
-    const reminderDate = moment(todo.toBeComplete).subtract(todo.toBeComplete - todo.reminder);
-    setReminderHours(moment(todo.toBeComplete).diff(reminderDate, 'hours'));
-    setReminderMinutes(moment(todo.toBeComplete).diff(reminderDate, 'minutes'));
+    const toBeCompleteDate = moment(todo.toBeComplete);
+    const reminderDate = moment(todo.reminder);
+    const diffMilliseconds = toBeCompleteDate.diff(reminderDate);
+
+    const diffHours = Math.floor(diffMilliseconds / (1000 * 60 * 60));
+    const diffMinutes = Math.floor((diffMilliseconds % (1000 * 60 * 60)) / (1000 * 60));
+
+    setReminderHours(diffHours);
+    setReminderMinutes(diffMinutes);
 };

@@ -516,7 +516,7 @@ const HomeScreen = () => {
                         <ScrollView contentContainerStyle={{flexGrow: 1}}>
                             <View style={styles.modalContent}>
                                 <Text style={[styles.title, {backgroundColor: 'white'}]}>
-                                    Create ToDo
+                                    {actionType==='update'?'Update':'Create'}{' '}ToDo
                                 </Text>
                                 <TextInput
                                     style={[styles.modalInput, {marginTop: 20}]}
@@ -542,6 +542,7 @@ const HomeScreen = () => {
                                 <DateTimePickerModal
                                     isVisible={isDatePickerVisible}
                                     mode="datetime"
+                                    minimumDate={new Date().getTime()}
                                     onConfirm={handleConfirmDate}
                                     onCancel={hideDatePicker}
                                 />
