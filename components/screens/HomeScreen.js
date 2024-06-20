@@ -1,8 +1,6 @@
 import React, {useState, useEffect, useRef, useLayoutEffect} from 'react';
 import {
     View,
-    Alert,
-    StyleSheet,
     ScrollView,
     FlatList,
     ActivityIndicator,
@@ -15,18 +13,22 @@ import {
 } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import {
-    addTodo,
-    getAllTodos,
-    updateTodo,
-    deleteTodo, getTodoById,
-} from '../utils/dbQueries';
+import {deleteTodo} from '../utils/dbQueries';
 import {useSQLiteContext} from 'expo-sqlite';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import moment from 'moment';
 import Collapsible from 'react-native-collapsible';
+import {scheduleNotification, setupNotifications} from "../utils/notifications";
+import {
+    checkIfTodoExpired,
+    fetchAllTodos,
+    handleCompleteTodo,
+    handleCreateTodo, handleRescheduleTodo,
+    handleUpdateTodo, showAlert
+} from "./functions/functions";
+import {styles} from "../styles/homeScreen.styles";
 
 const hourOptions = Array.from({length: 24}, (_, i) => i);
 const minuteOptions = Array.from({length: 60}, (_, i) => i);
@@ -74,6 +76,10 @@ const HomeScreen = () => {
         }
     }, [selectedTodos]);
 
+    useEffect(() => {
+        setupNotifications("Todo", "message", todoData.isComplete)
+    }, [])
+
     useLayoutEffect(() => {
         navigation.setOptions({
             headerStyle: {
@@ -114,9 +120,7 @@ const HomeScreen = () => {
 
     const fetchTodos = async () => {
         setIsLoading(true);
-        const result = await getAllTodos(db);
-        setTodos(result);
-        checkIfHasTodosForToday(result);
+        await fetchAllTodos(db, setTodos, checkIfHasTodosForToday)
         setIsLoading(false);
     };
 
@@ -146,25 +150,6 @@ const HomeScreen = () => {
         }).start();
     };
 
-    const showAlert = (title, message) =>
-        Alert.alert(
-            title,
-            message,
-            [
-                {
-                    text: 'Cancel',
-                    onPress: () => Alert.alert('Cancel Pressed'),
-                    style: 'cancel',
-                },
-            ],
-            {
-                cancelable: true,
-                onDismiss: () =>
-                    Alert.alert(
-                        'This alert was dismissed by tapping outside of the alert dialog.'
-                    ),
-            }
-        );
 
     const handleRateClick = () => {
         showAlert('Rate us', 'This feature not yet implemented');
@@ -176,21 +161,7 @@ const HomeScreen = () => {
     };
 
     const handleCreate = async () => {
-        const toBeCompleteDate = new Date(todoData.toBeComplete);
-        const reminderDate = new Date(toBeCompleteDate);
-
-        reminderDate.setHours(toBeCompleteDate.getHours() - reminderHours);
-        reminderDate.setMinutes(toBeCompleteDate.getMinutes() - reminderMinutes);
-
-        await addTodo(
-            db,
-            todoData.value,
-            todoData.description,
-            todoData.created,
-            todoData.isComplete,
-            todoData.toBeComplete,
-            reminderDate.getTime()
-        );
+        await handleCreateTodo(todoData, reminderHours, reminderMinutes, db);
 
         setOpenModal(false);
         handleCleanModalData();
@@ -198,20 +169,12 @@ const HomeScreen = () => {
     };
 
     const handleUpdate = async () => {
-        const toBeCompleteDate = new Date(todoData.toBeComplete);
-        const reminderDate = new Date(toBeCompleteDate);
+        await handleUpdateTodo(todoData, reminderHours, reminderMinutes, db, todoId)
 
-        reminderDate.setHours(toBeCompleteDate.getHours() - reminderHours);
-        reminderDate.setMinutes(toBeCompleteDate.getMinutes() - reminderMinutes);
-
-        await updateTodo(
-            db,
-            todoId,
-            todoData.value,
-            todoData.description,
-            todoData.isComplete,
-            todoData.toBeComplete,
-            reminderDate.getTime()
+        await scheduleNotification(
+            "Todo Updated",
+            `Your todo "${todoData.value}" has been updated successfully.`,
+            {seconds: 1}
         );
 
         setOpenModal(false);
@@ -220,17 +183,7 @@ const HomeScreen = () => {
     }
 
     const completeTodo = async (id) => {
-        const [todo] = todos.filter((item) => item.id === id);
-        const updatedTodo = {...todo, isComplete: !todo.isComplete};
-        await updateTodo(
-            db,
-            id,
-            updatedTodo.value,
-            updatedTodo.description,
-            updatedTodo.isComplete,
-            updatedTodo.toBeComplete,
-            updatedTodo.reminder
-        );
+        await handleCompleteTodo(id, db, todos)
         await fetchTodos();
     };
 
@@ -239,26 +192,9 @@ const HomeScreen = () => {
         await fetchTodos()
         setIsLoading(false);
     }
+
     const handleReschedule = async (id) => {
-        const result = await getTodoById(db, id);
-        const todo = result[0];
-
-        setOpenModal(true);
-        setActionType('update')
-        setTodoId(id)
-
-        setTodoData({
-            value: todo.value,
-            description: todo.description,
-            created: todo.created,
-            toBeComplete: todo.toBeComplete,
-            reminder: todo.reminder,
-            isComplete: todo.isComplete,
-        });
-
-        const reminderDate = moment(todo.toBeComplete).subtract(todo.toBeComplete - todo.reminder);
-        setReminderHours(moment(todo.toBeComplete).diff(reminderDate, 'hours'));
-        setReminderMinutes(moment(todo.toBeComplete).diff(reminderDate, 'minutes'));
+        await handleRescheduleTodo(id, db, setOpenModal, setActionType, setTodoId, setTodoData, setReminderHours, setReminderMinutes)
     };
 
     const handleView = (id) => {
@@ -299,7 +235,6 @@ const HomeScreen = () => {
     const hideDatePicker = () => {
         setDatePickerVisibility(false);
     };
-
 
     const handleOpenModal = () => {
         setOpenModal(true);
@@ -350,23 +285,7 @@ const HomeScreen = () => {
     };
 
     const checkIfExpired = (timeToExpire) => {
-        const currentTime = moment();
-        const expireTime = moment(timeToExpire);
-
-        if (currentTime.isAfter(expireTime)) {
-            return true;
-        }
-
-        if (currentTime.isSame(expireTime)) {
-            const currentSeconds = currentTime.seconds();
-            const expireSeconds = expireTime.seconds();
-
-            if (currentSeconds > expireSeconds) {
-                return true;
-            }
-        }
-
-        return false;
+        return checkIfTodoExpired(timeToExpire)
     };
 
     const getTodayIndex = () => {
@@ -684,224 +603,5 @@ const HomeScreen = () => {
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 5,
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-        backgroundColor: '#5A9AA9',
-    },
-    headerContainer: {
-        backgroundColor: '#fff',
-    },
-    headerIcon: {
-        color: '#5A9AA9',
-        paddingHorizontal: 15,
-    },
-    scrollViewContent: {
-        flexGrow: 1,
-    },
-    addButton: {
-        position: 'absolute',
-        right: 30,
-        bottom: 30,
-        backgroundColor: '#4682b4',
-        elevation: 5,
-        borderRadius: 50,
-        padding: 15,
-    },
-    scrollToTodayButton: {
-        position: 'absolute',
-        right: 30,
-        bottom: 100,
-        backgroundColor: '#4682b4',
-        elevation: 5,
-        borderRadius: 50,
-        padding: 15,
-    },
-
-    todoItem: {
-        padding: 10,
-        marginVertical: 5,
-        borderRadius: 10,
-        width: '90%',
-        marginRight: 10,
-        marginLeft: 5,
-    },
-    selectedTodoItem: {
-        backgroundColor: '#FF6464',
-    },
-    loading: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        padding: 10,
-    },
-    todoGroup: {
-        marginBottom: 20,
-        width: '90%',
-        alignSelf: 'center',
-    },
-    grp: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    groupTitle: {
-        fontWeight: 'bold',
-        width: '12%',
-        padding: 3,
-        borderWidth: 2,
-        borderRadius: 10,
-        borderColor: '#ddd',
-        marginBottom: 25,
-        marginTop: 3,
-        marginLeft: 3,
-        flexDirection: 'column',
-        justifyContent: 'flex-start',
-        alignItems: 'center',
-    },
-    dateText: {
-        color: '#fff',
-        fontWeight: 'bold',
-    },
-    statusPending: {
-        textAlign: 'right',
-        color: 'orange',
-    },
-    statusAhead: {
-        textAlign: 'right',
-        color: 'green',
-    },
-    statusComplete: {
-        textAlign: 'right',
-        color: 'gray',
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: '300',
-        color: '#5A9AA9',
-        marginVertical: 5,
-        textAlign: 'center',
-        padding: 3,
-        borderRadius: 10,
-        borderWidth: 2,
-        borderColor: '#ddd',
-    },
-    todoTitle: {
-        fontWeight: 'bold',
-        fontSize: 16,
-        color: '#333',
-        width: '80%',
-    },
-    todoTitleComplete: {
-        textDecorationLine: 'line-through',
-        fontWeight: 'bold',
-        fontSize: 16,
-        color: '#333',
-        width: '80%',
-    },
-    todoDescription: {
-        fontSize: 14,
-        color: '#666',
-        marginVertical: 5,
-    },
-    todoCreated: {
-        fontSize: 12,
-        color: '#999',
-        marginVertical: 5,
-        textAlign: 'right',
-    },
-    todoStatus: {
-        marginTop: 10,
-        fontSize: 13,
-        fontWeight: 'bold',
-        fontStyle: 'italic',
-    },
-    completeBtn: {
-        fontSize: 12,
-        color: 'green',
-        marginVertical: 5,
-        textAlign: 'right',
-    },
-    actionGrp: {
-        flexDirection: 'row',
-    },
-
-    modalContent: {
-        flex: 1,
-        padding: 20,
-        backgroundColor: '#5A9AA9',
-    },
-
-    modalInput: {
-        padding: 10,
-        borderWidth: 1,
-        borderColor: '#dcdcdc',
-        backgroundColor: 'white',
-        borderRadius: 5,
-        marginBottom: 10,
-    },
-    modalPicker: {
-        height: 40,
-        justifyContent: 'center',
-        width: '45%',
-        borderWidth: 1,
-        borderColor: '#dcdcdc',
-        borderRadius: 5,
-        backgroundColor: 'white',
-    },
-    modalTextarea: {
-        height: 100,
-        textAlignVertical: 'top',
-    },
-    modalActions: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    modalButton: {
-        flex: 1,
-        padding: 15,
-        borderRadius: 5,
-        alignItems: 'center',
-    },
-    cancelButton: {
-        backgroundColor: '#B4B4B4FF',
-        marginRight: 10,
-        elevation: 5,
-    },
-    createButton: {
-        backgroundColor: '#4682b4',
-        elevation: 5,
-    },
-    modalButtonText: {
-        color: 'white',
-        fontWeight: 'bold',
-    },
-    modalPickerGrp: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginVertical: 20,
-    },
-    notificationTitle: {
-        color: 'white',
-        fontWeight: '100',
-    },
-    viewBtn: {
-        borderWidth: 1,
-        borderRadius: 5,
-        borderColor: '#5A9AA9',
-        padding: 5,
-        width: '45%',
-        alignItems: 'center'
-    },
-    rescheduleBtn: {
-        borderWidth: 1,
-        borderRadius: 5,
-        borderColor: '#5A9AA9',
-        padding: 5,
-        width: '45%',
-        alignItems: 'center'
-    },
-});
 
 export default HomeScreen;
