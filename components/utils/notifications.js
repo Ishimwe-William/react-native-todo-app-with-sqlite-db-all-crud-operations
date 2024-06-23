@@ -1,32 +1,7 @@
 import * as Notifications from 'expo-notifications';
-import * as BackgroundFetch from 'expo-background-fetch';
-import * as TaskManager from 'expo-task-manager';
-
-const BACKGROUND_FETCH_TASK = 'background-fetch';
-
-TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
-    const now = Date.now();
-
-    console.log(`Got background fetch call at date: ${new Date(now).toISOString()}`);
-
-    // Be sure to return the successful result type!
-    return BackgroundFetch.BackgroundFetchResult.NewData;
-});
-
-export async function registerBackgroundFetchAsync() {
-    return BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
-        minimumInterval: 1 * 60,
-        stopOnTerminate: false,
-        startOnBoot: true,
-    });
-}
-
-export async function unregisterBackgroundFetchAsync() {
-    return BackgroundFetch.unregisterTaskAsync(BACKGROUND_FETCH_TASK);
-}
 
 export const setupNotifications = async () => {
-    const { status } = await Notifications.requestPermissionsAsync();
+    const {status} = await Notifications.requestPermissionsAsync();
     if (status !== 'granted') {
         alert('You need to grant permissions to use notifications.');
         return;
@@ -86,3 +61,5 @@ Notifications.addNotificationResponseReceivedListener(response => {
         dismissNotification(response.notification.request.identifier);
     }
 });
+
+

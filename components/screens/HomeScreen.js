@@ -22,6 +22,7 @@ import moment from 'moment';
 import Collapsible from 'react-native-collapsible';
 import {scheduleNotification, setupNotifications} from "../utils/notifications";
 import {
+    calculateReminderTrigger,
     checkIfTodoExpired,
     fetchAllTodos,
     handleCompleteTodo,
@@ -91,15 +92,6 @@ const HomeScreen = () => {
             }
         });
     }, [todos]);
-
-    const calculateReminderTrigger = (toBeComplete, reminderHours, reminderMinutes) => {
-        const reminderTime = moment(toBeComplete)
-            .subtract(reminderHours, 'hours')
-            .subtract(reminderMinutes, 'minutes');
-
-        const triggerInSeconds = moment.duration(reminderTime.diff(moment())).asSeconds();
-        return {seconds: triggerInSeconds};
-    };
 
     useLayoutEffect(() => {
         navigation.setOptions({
@@ -200,13 +192,6 @@ const HomeScreen = () => {
 
     const handleUpdate = async () => {
         await handleUpdateTodo(todoData, reminderHours, reminderMinutes, db, todoId)
-
-        await scheduleNotification(
-            "Todo Updated",
-            `Your todo "${todoData.value}" has been updated successfully.`,
-            {seconds: 1}
-        );
-
         const reminderTrigger = calculateReminderTrigger(todoData.toBeComplete, reminderHours, reminderMinutes);
         if (reminderTrigger.seconds > 0) {
             await scheduleNotification(

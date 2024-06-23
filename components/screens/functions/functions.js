@@ -1,4 +1,4 @@
-import {addTodo, getAllTodos, getExpiredIncompleteTodos, getTodoById, updateTodo} from "../../utils/dbQueries";
+import {addTodo, getAllTodos, getTodoById, updateTodo} from "../../utils/dbQueries";
 import moment from "moment";
 import {Alert} from "react-native";
 
@@ -126,10 +126,22 @@ export const handleRescheduleTodo = async (id, db, setOpenModal, setActionType, 
     setReminderMinutes(diffMinutes);
 };
 
-export const fetchExpiredIncompleteTodos = async (db) => {
-    try {
-        return await getExpiredIncompleteTodos(db);
-    } catch (error) {
-        console.error('Error fetching expired incomplete todos:', error);
-    }
-}
+export const calculateReminderTrigger = (toBeComplete, reminderHours, reminderMinutes) => {
+    const reminderTime = moment(toBeComplete)
+        .subtract(reminderHours, 'hours')
+        .subtract(reminderMinutes, 'minutes');
+
+    const triggerInSeconds = moment.duration(reminderTime.diff(moment())).asSeconds();
+    return {seconds: triggerInSeconds};
+};
+
+
+export const calculateReminderHrsAndMin = (toBeComplete, reminder) => {
+    const diffMillis = reminder - toBeComplete;
+    const diffMinutes = Math.floor((diffMillis / (1000 * 60)) % 60);
+    const diffHours = Math.floor((diffMillis / (1000 * 60 * 60)) % 24);
+    return {
+        reminderHrs: diffHours,
+        reminderMins: diffMinutes
+    };
+};
