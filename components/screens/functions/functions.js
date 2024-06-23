@@ -1,4 +1,4 @@
-import {addTodo, getAllTodos, getTodoById, updateTodo} from "../../utils/dbQueries";
+import {addTodo, getAllTodos, getExpiredIncompleteTodos, getTodoById, updateTodo} from "../../utils/dbQueries";
 import moment from "moment";
 import {Alert} from "react-native";
 
@@ -125,3 +125,11 @@ export const handleRescheduleTodo = async (id, db, setOpenModal, setActionType, 
     setReminderHours(diffHours);
     setReminderMinutes(diffMinutes);
 };
+
+export const fetchExpiredIncompleteTodos = async (db) => {
+    try {
+        return await getExpiredIncompleteTodos(db);
+    } catch (error) {
+        console.error('Error fetching expired incomplete todos:', error);
+    }
+}

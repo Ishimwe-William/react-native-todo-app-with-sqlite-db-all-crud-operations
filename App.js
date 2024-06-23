@@ -10,15 +10,20 @@ import EditTodoScreen from './components/screens/EditTodoScreen';
 import DeleteTodoScreen from './components/screens/DeleteTodoScreen';
 import {migrateDbIfNeeded} from './components/utils/dbMigrations';
 import {setupNotifications} from './components/utils/notifications';
-import {registerBackgroundFetch} from './components/utils/backgroundTasks';
+import * as Notifications from "expo-notifications";
 
 const Drawer = createDrawerNavigator();
 
 export default function App() {
-
     useEffect(() => {
         setupNotifications();
-        registerBackgroundFetch();
+        const askPermissions = async () => {
+            const {status} = await Notifications.requestPermissionsAsync();
+            if (status !== 'granted') {
+                alert('You need to grant permissions to use notifications.');
+            }
+        };
+        askPermissions();
     }, []);
 
     return (

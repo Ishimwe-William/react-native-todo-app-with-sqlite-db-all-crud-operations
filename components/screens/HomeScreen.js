@@ -77,8 +77,29 @@ const HomeScreen = () => {
     }, [selectedTodos]);
 
     useEffect(() => {
-        setupNotifications("Todo", "message", todoData.isComplete)
-    }, [])
+        setupNotifications();
+    }, []);
+
+    useEffect(() => {
+        todos.forEach(todo => {
+            if (todo.reminder && !todo.isComplete) {
+                scheduleNotification(
+                    `Reminder: ${todo.value}`,
+                    `Your todo "${todo.value}" is due soon.`,
+                    calculateReminderTrigger(todo.toBeComplete, todo.reminder)
+                );
+            }
+        });
+    }, [todos]);
+
+    const calculateReminderTrigger = (toBeComplete, reminderHours, reminderMinutes) => {
+        const reminderTime = moment(toBeComplete)
+            .subtract(reminderHours, 'hours')
+            .subtract(reminderMinutes, 'minutes');
+
+        const triggerInSeconds = moment.duration(reminderTime.diff(moment())).asSeconds();
+        return {seconds: triggerInSeconds};
+    };
 
     useLayoutEffect(() => {
         navigation.setOptions({
@@ -163,6 +184,15 @@ const HomeScreen = () => {
     const handleCreate = async () => {
         await handleCreateTodo(todoData, reminderHours, reminderMinutes, db);
 
+        const reminderTrigger = calculateReminderTrigger(todoData.toBeComplete, reminderHours, reminderMinutes);
+        if (reminderTrigger.seconds > 0) {
+            await scheduleNotification(
+                `Reminder: ${todoData.value}`,
+                `Your todo "${todoData.value}" is due soon.`,
+                reminderTrigger
+            );
+        }
+
         setOpenModal(false);
         handleCleanModalData();
         await fetchTodos();
@@ -176,6 +206,14 @@ const HomeScreen = () => {
             `Your todo "${todoData.value}" has been updated successfully.`,
             {seconds: 1}
         );
+
+        const reminderTrigger = calculateReminderTrigger(todoData.toBeComplete, reminderHours, reminderMinutes);
+        if (reminderTrigger.seconds > 0) {
+            await scheduleNotification(
+                `Reminder: ${todoData.value}`,
+                `Your todo "${todoData.value}" is due soon.`,
+                reminderTrigger);
+        }
 
         setOpenModal(false);
         handleCleanModalData();
@@ -516,7 +554,7 @@ const HomeScreen = () => {
                         <ScrollView contentContainerStyle={{flexGrow: 1}}>
                             <View style={styles.modalContent}>
                                 <Text style={[styles.title, {backgroundColor: 'white'}]}>
-                                    {actionType==='update'?'Update':'Create'}{' '}ToDo
+                                    {actionType === 'update' ? 'Update' : 'Create'}{' '}ToDo
                                 </Text>
                                 <TextInput
                                     style={[styles.modalInput, {marginTop: 20}]}
@@ -542,7 +580,7 @@ const HomeScreen = () => {
                                 <DateTimePickerModal
                                     isVisible={isDatePickerVisible}
                                     mode="datetime"
-                                    minimumDate={new Date().getTime()}
+                                    minimumDate={new Date()}
                                     onConfirm={handleConfirmDate}
                                     onCancel={hideDatePicker}
                                 />
