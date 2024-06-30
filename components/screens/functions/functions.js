@@ -107,6 +107,7 @@ export const handleRescheduleTodo = async (id, db, setOpenModal, setActionType, 
     setTodoId(id)
 
     setTodoData({
+        id:todo.id,
         value: todo.value,
         description: todo.description,
         created: todo.created,

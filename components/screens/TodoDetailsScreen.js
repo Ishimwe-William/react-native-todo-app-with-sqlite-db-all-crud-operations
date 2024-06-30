@@ -13,6 +13,7 @@ const TodoDetailsScreen = ({ route }) => {
 
   useEffect(() => {
     const fetchTodo = async () => {
+      console.log(id)
       const result = await getTodoById(db, id);
       setTodo(result[0]);
     };

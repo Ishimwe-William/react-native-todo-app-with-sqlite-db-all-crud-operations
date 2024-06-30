@@ -67,6 +67,7 @@ const HomeScreen = () => {
     useEffect(() => {
         if (isFocused) {
             fetchTodos();
+            scrollToToday()
         }
     }, [db, isFocused]);
 
@@ -85,6 +86,7 @@ const HomeScreen = () => {
         todos.forEach(todo => {
             if (todo.reminder && !todo.isComplete) {
                 scheduleNotification(
+                    todo.id,
                     `Reminder: ${todo.value}`,
                     `Your todo "${todo.value}" is due soon.`,
                     calculateReminderTrigger(todo.toBeComplete, todo.reminder)
@@ -179,6 +181,7 @@ const HomeScreen = () => {
         const reminderTrigger = calculateReminderTrigger(todoData.toBeComplete, reminderHours, reminderMinutes);
         if (reminderTrigger.seconds > 0) {
             await scheduleNotification(
+                todoData.id,
                 `Reminder: ${todoData.value}`,
                 `Your todo "${todoData.value}" is due soon.`,
                 reminderTrigger
@@ -195,6 +198,7 @@ const HomeScreen = () => {
         const reminderTrigger = calculateReminderTrigger(todoData.toBeComplete, reminderHours, reminderMinutes);
         if (reminderTrigger.seconds > 0) {
             await scheduleNotification(
+                todoData.id,
                 `Reminder: ${todoData.value}`,
                 `Your todo "${todoData.value}" is due soon.`,
                 reminderTrigger);
@@ -363,7 +367,7 @@ const HomeScreen = () => {
                             <View style={styles.grp}>
                                 <View style={styles.groupTitle}>
                                     <Text style={styles.dateText}>
-                                        {moment(item).format('ddd')}
+                                        {moment(item).isSame(new Date(), 'day') ? "Today" : moment(item).format('ddd')}
                                     </Text>
                                     <Text style={styles.dateText}>
                                         {moment(item).format('MMM')}
@@ -517,21 +521,25 @@ const HomeScreen = () => {
                         <View style={styles.actionGrp}>
                             <TouchableOpacity onPress={() => handleDelete()}>
                                 <View
-                                    style={{flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center'}}>
-                                    <Text style={{color: 'white',}}>{' '}Delete selected</Text>
+                                    style={[styles.selectedAction, {backgroundColor: "#FF6464",}]}>
                                     <MaterialCommunityIcons
                                         name="delete-forever"
                                         size={40}
-                                        color="red"
+                                        color="white"
                                     />
+                                    <Text style={{color: 'white',}}>{' '}Delete selected</Text>
                                 </View>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={handleClearSelect}>
-                                <Text>{<MaterialCommunityIcons
-                                    name="close-circle-outline"
-                                    size={40}
-                                    color="#fff"
-                                />}{' '}Unselect all</Text>
+                                <View
+                                    style={[styles.selectedAction, {backgroundColor: "gray",}]}>
+                                    <MaterialCommunityIcons
+                                        name="close-circle-outline"
+                                        size={40}
+                                        color="#fff"
+                                    />
+                                    <Text style={{color: 'white',}}>{' '}Unselect all</Text>
+                                </View>
                             </TouchableOpacity>
                         </View>
                     </Animated.View>

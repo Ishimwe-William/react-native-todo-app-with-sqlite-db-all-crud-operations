@@ -48,6 +48,15 @@ export const styles = StyleSheet.create({
     selectedTodoItem: {
         backgroundColor: '#FF6464',
     },
+    selectedAction: {
+        paddingHorizontal: 5,
+        borderRadius: 5,
+        borderWidth: 1,
+        borderColor: "white",
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginHorizontal:"6%",
+    },
     loading: {
         flexDirection: 'row',
         justifyContent: 'space-around',
@@ -64,7 +73,7 @@ export const styles = StyleSheet.create({
     },
     groupTitle: {
         fontWeight: 'bold',
-        width: '12%',
+        width: '14%',
         padding: 3,
         borderWidth: 2,
         borderRadius: 10,
