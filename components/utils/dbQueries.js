@@ -43,6 +43,12 @@ export const updateTodo = async (db, id, value, description, isComplete, toBeCom
     );
 };
 
+export const completeTodo = async (db, id) => {
+    return await db.runAsync(
+        'UPDATE todos SET isComplete = not isComplete WHERE id = ?', [id]
+    );
+};
+
 export const deleteTodo = async (db, id) => {
     return await db.runAsync('DELETE FROM todos WHERE id = ?', [id]);
 };

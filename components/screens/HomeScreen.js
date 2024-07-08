@@ -34,7 +34,7 @@ import {styles} from "../styles/homeScreen.styles";
 const hourOptions = Array.from({length: 24}, (_, i) => i);
 const minuteOptions = Array.from({length: 60}, (_, i) => i);
 
-const HomeScreen = () => {
+const HomeScreen = ({ route }) => {
     const db = useSQLiteContext();
     const isFocused = useIsFocused();
     const [todos, setTodos] = useState([]);
@@ -67,7 +67,7 @@ const HomeScreen = () => {
     useEffect(() => {
         if (isFocused) {
             fetchTodos();
-            scrollToToday()
+            scrollToToday();
         }
     }, [db, isFocused]);
 
@@ -77,6 +77,14 @@ const HomeScreen = () => {
             animateActionOpacity(0);
         }
     }, [selectedTodos]);
+
+    useEffect(() => {
+        if (route.params?.refresh) {
+            fetchTodos();
+            scrollToToday();
+            navigation.setParams({ refresh: undefined });
+        }
+    }, [route.params?.refresh]);
 
     useEffect(() => {
         setupNotifications();
@@ -210,7 +218,7 @@ const HomeScreen = () => {
     }
 
     const completeTodo = async (id) => {
-        await handleCompleteTodo(id, db, todos)
+        await handleCompleteTodo(id, db)
         await fetchTodos();
     };
 
@@ -484,7 +492,7 @@ const HomeScreen = () => {
                                                     <TouchableOpacity
                                                         onPress={() => completeTodo(todo.id)}>
                                                         <Text style={styles.completeBtn}>
-                                                            {todo.isComplete ? 'Unmark' : 'Mark'} as complete
+                                                            {todo.isComplete ? 'Unmark' : 'Mark'} as done
                                                         </Text>
                                                     </TouchableOpacity>
                                                     <Text style={styles.todoCreated}>

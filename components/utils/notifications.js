@@ -1,5 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import { navigationRef } from './navigationRef';
+import { handleCompleteTodo } from '../screens/functions/functions';
 
 export const setupNotifications = async () => {
     const { status } = await Notifications.requestPermissionsAsync();
@@ -35,12 +36,11 @@ export const setupNotifications = async () => {
 };
 
 export const scheduleNotification = async (id, title, body, trigger) => {
-    console.log(id)
     await Notifications.scheduleNotificationAsync({
         content: {
             title: title,
             body: body,
-            data: {id},
+            data: { id },
             categoryIdentifier: 'todoActions',
         },
         trigger: trigger,
@@ -51,20 +51,22 @@ export const dismissNotification = async (identifier) => {
     await Notifications.dismissNotificationAsync(identifier);
 };
 
-export const setupNotificationListener = () => {
-    Notifications.addNotificationResponseReceivedListener(response => {
+export const setupNotificationListener = (db) => {
+    Notifications.addNotificationResponseReceivedListener(async response => {
         const actionIdentifier = response.actionIdentifier;
         const id = response.notification.request.content.data.id;
 
         if (actionIdentifier === 'markAsDone') {
-            console.log('Todo marked as done');
-            // Handle marking the todo as done
-            dismissNotification(response.notification.request.identifier);
+            await handleCompleteTodo(id, db);
+            await dismissNotification(response.notification.request.identifier);
+            if (navigationRef.current) {
+                navigationRef.current.navigate('Home', { refresh: true });
+            }
         } else if (actionIdentifier === 'view') {
             if (navigationRef.current) {
                 navigationRef.current.navigate('TodoDetails', { id });
             }
-            dismissNotification(response.notification.request.identifier);
+            await dismissNotification(response.notification.request.identifier);
         }
     });
 };

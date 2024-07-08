@@ -1,20 +1,10 @@
-import {addTodo, getAllTodos, getTodoById, updateTodo} from "../../utils/dbQueries";
+import {addTodo, completeTodo, getAllTodos, getTodoById, updateTodo} from "../../utils/dbQueries";
 import moment from "moment";
 import {Alert} from "react-native";
 
-export const handleCompleteTodo = async (id, db, todos) => {
-    const [todo] = todos.filter((item) => item.id === id);
-    const updatedTodo = {...todo, isComplete: !todo.isComplete};
-    await updateTodo(
-        db,
-        id,
-        updatedTodo.value,
-        updatedTodo.description,
-        updatedTodo.isComplete,
-        updatedTodo.toBeComplete,
-        updatedTodo.reminder
-    );
-};
+export const handleCompleteTodo = async (id, db) => {
+    await completeTodo(db, id);
+}
 
 export const handleUpdateTodo = async (todoData, reminderHours, reminderMinutes, db, todoId) => {
     const toBeCompleteDate = new Date(todoData.toBeComplete);
@@ -107,7 +97,7 @@ export const handleRescheduleTodo = async (id, db, setOpenModal, setActionType, 
     setTodoId(id)
 
     setTodoData({
-        id:todo.id,
+        id: todo.id,
         value: todo.value,
         description: todo.description,
         created: todo.created,
