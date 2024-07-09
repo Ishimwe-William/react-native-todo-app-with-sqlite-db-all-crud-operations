@@ -1,25 +1,17 @@
 import React, {useState, useEffect, useRef, useLayoutEffect} from 'react';
 import {
     View,
-    ScrollView,
-    FlatList,
     ActivityIndicator,
-    Modal,
     Text,
     TouchableOpacity,
-    TextInput,
     Animated,
-    RefreshControl,
 } from 'react-native';
-import {Picker} from '@react-native-picker/picker';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import {deleteTodo} from '../utils/dbQueries';
 import {useSQLiteContext} from 'expo-sqlite';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import moment from 'moment';
-import Collapsible from 'react-native-collapsible';
 import {scheduleNotification, setupNotifications} from "../utils/notifications";
 import {
     calculateReminderTrigger,
@@ -30,11 +22,11 @@ import {
     handleUpdateTodo, showAlert
 } from "./functions/functions";
 import {styles} from "../styles/homeScreen.styles";
+import {TodoList} from "./lists/TodoList";
+import {EditTodoModal} from "./modals/EditTodoModal";
+import {hourOptions, minuteOptions} from "./constants/constants";
 
-const hourOptions = Array.from({length: 24}, (_, i) => i);
-const minuteOptions = Array.from({length: 60}, (_, i) => i);
-
-const HomeScreen = ({ route }) => {
+const HomeScreen = ({route}) => {
     const db = useSQLiteContext();
     const isFocused = useIsFocused();
     const [todos, setTodos] = useState([]);
@@ -82,7 +74,7 @@ const HomeScreen = ({ route }) => {
         if (route.params?.refresh) {
             fetchTodos();
             scrollToToday();
-            navigation.setParams({ refresh: undefined });
+            navigation.setParams({refresh: undefined});
         }
     }, [route.params?.refresh]);
 
@@ -359,154 +351,23 @@ const HomeScreen = ({ route }) => {
         <>
             {!isLoading ? (
                 <View style={styles.container}>
-                    <FlatList
-                        ref={flatListRef}
-                        data={sortedDates}
-                        refreshControl={
-                            <RefreshControl
-                                refreshing={isLoading}
-                                onRefresh={handleRefresh}
-                            />
-                        }
-                        keyExtractor={(item) => item}
+                    <TodoList
+                        flatListRef={flatListRef}
+                        sortedDates={sortedDates}
+                        isLoading={isLoading}
+                        handleRefresh={handleRefresh}
                         viewabilityConfig={viewabilityConfig}
-                        onViewableItemsChanged={viewableItemsChanged.current}
-                        renderItem={({item}) => (
-                            <View style={styles.grp}>
-                                <View style={styles.groupTitle}>
-                                    <Text style={styles.dateText}>
-                                        {moment(item).isSame(new Date(), 'day') ? "Today" : moment(item).format('ddd')}
-                                    </Text>
-                                    <Text style={styles.dateText}>
-                                        {moment(item).format('MMM')}
-                                    </Text>
-                                    <Text style={styles.dateText}>
-                                        {moment(item).format('DD')}
-                                    </Text>
-                                    <Text style={styles.dateText}>
-                                        {moment(item).format('YYYY')}
-                                    </Text>
-                                </View>
-                                <View style={styles.todoGroup}>
-                                    {groupedTodos[item].map((todo) => (
-                                        <View
-                                            style={[
-                                                styles.todoItem,
-                                                {
-                                                    backgroundColor: todo.isComplete
-                                                        ? 'rgba(255,255,255,0.63)'
-                                                        : '#fff',
-                                                },
-                                                selectedTodos.includes(todo.id) &&
-                                                styles.selectedTodoItem,
-                                            ]}
-                                            key={todo.id}>
-                                            <TouchableOpacity
-                                                onPress={
-                                                    !isLongPressed
-                                                        ? () => toggleExpand(todo.id)
-                                                        : () => addToAction(todo.id)
-                                                }
-                                                onLongPress={() => addToAction(todo.id)}>
-                                                <View style={styles.grp}>
-                                                    <Text
-                                                        style={
-                                                            todo.isComplete
-                                                                ? styles.todoTitleComplete
-                                                                : styles.todoTitle
-                                                        }
-                                                        numberOfLines={
-                                                            !activeSections.includes(todo.id) ? 1 : null
-                                                        }
-                                                        ellipsizeMode="tail">{`${todo.value}`}</Text>
-                                                    <Text
-                                                        style={[
-                                                            styles.todoStatus,
-                                                            !todo.isComplete
-                                                                ? checkIfExpired(todo.toBeComplete)
-                                                                    ? styles.statusPending
-                                                                    : styles.statusAhead
-                                                                : styles.statusComplete,
-                                                        ]}>
-                                                        {`${
-                                                            !todo.isComplete
-                                                                ? checkIfExpired(todo.toBeComplete)
-                                                                    ? 'pending'
-                                                                    : `${moment(todo.toBeComplete).format(
-                                                                        'ddd H:mm'
-                                                                    )}`
-                                                                : 'completed'
-                                                        }`}
-                                                    </Text>
-                                                </View>
-                                            </TouchableOpacity>
-                                            <Collapsible
-                                                collapsed={!activeSections.includes(todo.id)}>
-                                                <Text style={styles.todoDescription}>
-                                                    {`${todo.description}`}
-                                                </Text>
-                                                {!todo.isComplete && (
-                                                    <View>
-                                                        <View
-                                                            style={[styles.grp, {alignItems: 'center'}]}>
-                                                            <Text style={styles.todoStatus}>
-                                                                Due:{' '}
-                                                                {`${moment(todo.toBeComplete).format(
-                                                                    'MMM DD, H:mm'
-                                                                )}`}
-                                                            </Text>
-                                                            <Text style={styles.todoStatus}>
-                                                                {
-                                                                    <Feather
-                                                                        name="bell"
-                                                                        size={24}
-                                                                        color={'red'}
-                                                                    />
-                                                                }
-                                                                {'  '}
-                                                                {`${moment(todo.reminder).format(
-                                                                    'MMM DD, H:mm'
-                                                                )}`}
-                                                            </Text>
-                                                        </View>
-                                                        <View
-                                                            style={[styles.grp, {marginVertical: 5}]}>
-                                                            <View style={styles.viewBtn}>
-                                                                <TouchableOpacity
-                                                                    onPress={() => handleView(todo.id)}>
-                                                                    <Text style={{color: '#5A9AA9'}}>View</Text>
-                                                                </TouchableOpacity>
-                                                            </View>
-                                                            <View style={styles.rescheduleBtn}>
-                                                                <TouchableOpacity
-                                                                    onPress={() => handleReschedule(todo.id)}>
-                                                                    <Text style={{color: '#5A9AA9'}}>{<Feather
-                                                                        name={'clock'} size={16}
-                                                                        color={'#5A9AA9'}/>}{' '}Reschedule</Text>
-                                                                </TouchableOpacity>
-                                                            </View>
-                                                        </View>
-                                                    </View>
-                                                )}
-                                                <View style={styles.grp}>
-                                                    <TouchableOpacity
-                                                        onPress={() => completeTodo(todo.id)}>
-                                                        <Text style={styles.completeBtn}>
-                                                            {todo.isComplete ? 'Unmark' : 'Mark'} as done
-                                                        </Text>
-                                                    </TouchableOpacity>
-                                                    <Text style={styles.todoCreated}>
-                                                        Created:{' '}
-                                                        {`${moment(todo.created).format('MMM DD H:mm')}`}
-                                                    </Text>
-                                                </View>
-                                            </Collapsible>
-                                        </View>
-                                    ))}
-                                </View>
-                            </View>
-                        )}
-                        contentContainerStyle={styles.scrollViewContent}
+                        viewableItemsChanged={viewableItemsChanged}
+                        groupedTodos={groupedTodos}
+                        selectedTodos={selectedTodos}
+                        isLongPressed={isLongPressed}
+                        toggleExpand={toggleExpand}
+                        addToAction={addToAction}
+                        activeSections={activeSections}
+                        checkIfExpired={checkIfExpired}
+                        handleView={handleView}
+                        handleReschedule={handleReschedule}
+                        completeTodo={completeTodo}
                     />
                     <TouchableOpacity style={styles.addButton} onPress={handleOpenModal}>
                         <Feather name="plus" size={30} color="white"/>
@@ -551,88 +412,23 @@ const HomeScreen = ({ route }) => {
                             </TouchableOpacity>
                         </View>
                     </Animated.View>
-                    <Modal visible={openModal} animationType="slide">
-                        <ScrollView contentContainerStyle={{flexGrow: 1}}>
-                            <View style={styles.modalContent}>
-                                <Text style={[styles.title, {backgroundColor: 'white'}]}>
-                                    {actionType === 'update' ? 'Update' : 'Create'}{' '}ToDo
-                                </Text>
-                                <TextInput
-                                    style={[styles.modalInput, {marginTop: 20}]}
-                                    placeholder="Title"
-                                    value={todoData.value}
-                                    onChangeText={(text) => handleInputChange('value', text)}
-                                />
-                                <TextInput
-                                    style={[styles.modalInput, styles.modalTextarea]}
-                                    placeholder="Description"
-                                    multiline={true}
-                                    numberOfLines={4}
-                                    value={todoData.description}
-                                    onChangeText={(text) =>
-                                        handleInputChange('description', text)
-                                    }
-                                />
-                                <TouchableOpacity onPress={showDatePicker}>
-                                    <Text style={styles.modalInput}>
-                                        Due: {moment(todoData.toBeComplete).format('lll')}
-                                    </Text>
-                                </TouchableOpacity>
-                                <DateTimePickerModal
-                                    isVisible={isDatePickerVisible}
-                                    mode="datetime"
-                                    minimumDate={new Date()}
-                                    onConfirm={handleConfirmDate}
-                                    onCancel={hideDatePicker}
-                                />
-                                <Text style={styles.notificationTitle}>
-                                    {<Feather name="bell" size={20}/>} Add notification time [{' '}
-                                    {reminderHours} hrs {reminderMinutes} min before due ]
-                                </Text>
-                                <View style={styles.modalPickerGrp}>
-                                    <View style={styles.modalPicker}>
-                                        <Picker
-                                            selectedValue={reminderHours}
-                                            onValueChange={(value) => setReminderHours(value)}>
-                                            {hourOptions.map((hour) => (
-                                                <Picker.Item
-                                                    label={`${hour} hr`}
-                                                    value={hour}
-                                                    key={hour}
-                                                />
-                                            ))}
-                                        </Picker>
-                                    </View>
-                                    <View style={styles.modalPicker}>
-                                        <Picker
-                                            selectedValue={reminderMinutes}
-                                            onValueChange={(value) => setReminderMinutes(value)}>
-                                            {minuteOptions.map((minute) => (
-                                                <Picker.Item
-                                                    label={`${minute} min`}
-                                                    value={minute}
-                                                    key={minute}
-                                                />
-                                            ))}
-                                        </Picker>
-                                    </View>
-                                </View>
-                                <View style={styles.modalActions}>
-                                    <TouchableOpacity
-                                        style={[styles.modalButton, styles.cancelButton]}
-                                        onPress={handleCloseModal}>
-                                        <Text style={styles.modalButtonText}>Cancel</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity
-                                        style={[styles.modalButton, styles.createButton]}
-                                        onPress={actionType === 'update' ? handleUpdate : handleCreate}>
-                                        <Text
-                                            style={styles.modalButtonText}>{actionType === 'update' ? 'Update' : 'Create'}</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-                        </ScrollView>
-                    </Modal>
+                    <EditTodoModal
+                        openModal={openModal}
+                        actionType={actionType}
+                        todoData={todoData}
+                        handleInputChange={handleInputChange}
+                        showDatePicker={showDatePicker}
+                        isDatePickerVisible={isDatePickerVisible}
+                        handleConfirmDate={handleConfirmDate}
+                        hideDatePicker={hideDatePicker}
+                        reminderHours={reminderHours}
+                        reminderMinutes={reminderMinutes}
+                        setReminderHours={setReminderHours}
+                        setReminderMinutes={setReminderMinutes}
+                        handleUpdate={handleUpdate}
+                        handleCreate={handleCreate}
+                        handleCloseModal={handleCloseModal}
+                    />
                 </View>
             ) : (
                 <View style={[styles.container, styles.loading]}>
