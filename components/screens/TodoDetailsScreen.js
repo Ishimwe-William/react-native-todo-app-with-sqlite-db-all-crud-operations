@@ -1,7 +1,7 @@
-import React, {useState, useEffect, useLayoutEffect} from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert} from 'react-native';
+import React, {useState, useEffect, useLayoutEffect, useRef} from 'react';
+import {View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Dimensions} from 'react-native';
 import {useSQLiteContext} from 'expo-sqlite';
-import {getTodoById, deleteTodo} from '../utils/dbQueries';
+import {getTodoById, deleteTodo, getAllTodos} from '../utils/dbQueries';
 import Feather from 'react-native-vector-icons/Feather';
 import {useNavigation} from '@react-navigation/native';
 import {EditTodoModal} from "./modals/EditTodoModal";
@@ -13,22 +13,41 @@ import {
 } from "./functions/functions";
 import {scheduleNotification} from "../utils/notifications";
 
+const {width} = Dimensions.get('window');
+
 const TodoDetailsScreen = ({route}) => {
     const {id} = route.params;
     const db = useSQLiteContext();
     const [todo, setTodo] = useState(null);
+    const [allTodos, setAllTodos] = useState([]);
+    const [currentIndex, setCurrentIndex] = useState(0);
     const [openModal, setOpenModal] = useState(false);
     const [isDatePickerVisibility, setDatePickerVisibility] = useState(false);
     const [reminderHours, setReminderHours] = useState(0);
     const [reminderMinutes, setReminderMinutes] = useState(0);
     const navigation = useNavigation();
+    const scrollViewRef = useRef(null);
 
     useEffect(() => {
-        fetchTodo();
-    }, [db, id]);
+        fetchAllTodos();
+    }, [db]);
 
-    const fetchTodo = async () => {
-        const result = await getTodoById(db, id);
+    useEffect(() => {
+        if (allTodos.length > 0) {
+            const index = allTodos.findIndex(todo => todo.id === id);
+            setCurrentIndex(index);
+            fetchTodo(id);
+        }
+    }, [allTodos, id]);
+
+    const fetchAllTodos = async () => {
+        const todos = await getAllTodos(db);
+        todos.sort((a, b) => a.toBeComplete - b.toBeComplete);
+        setAllTodos(todos);
+    };
+
+    const fetchTodo = async (todoId) => {
+        const result = await getTodoById(db, todoId);
         const fetchedTodo = result[0];
 
         const {diffHours, diffMinutes} = getReminderDifference(fetchedTodo);
@@ -36,6 +55,7 @@ const TodoDetailsScreen = ({route}) => {
         setReminderMinutes(diffMinutes);
 
         setTodo(fetchedTodo);
+        return fetchedTodo;
     };
 
     useLayoutEffect(() => {
@@ -108,7 +128,7 @@ const TodoDetailsScreen = ({route}) => {
 
         setOpenModal(false);
         handleCleanModalData();
-        await fetchTodo()
+        await fetchTodo(id);
     }
 
     const handleCleanModalData = () => {
@@ -144,7 +164,17 @@ const TodoDetailsScreen = ({route}) => {
         );
     };
 
-    if (!todo) {
+    const handleScroll = async (event) => {
+        const contentOffsetX = event.nativeEvent.contentOffset.x;
+        const newIndex = Math.round(contentOffsetX / width);
+        if (newIndex !== currentIndex && newIndex >= 0 && newIndex < allTodos.length) {
+            setCurrentIndex(newIndex);
+            await fetchTodo(allTodos[newIndex].id);
+            navigation.setParams({id: allTodos[newIndex].id});
+        }
+    };
+
+    if (!todo || allTodos.length === 0) {
         return (
             <View style={styles.container}>
                 <Text>Loading...</Text>
@@ -156,37 +186,51 @@ const TodoDetailsScreen = ({route}) => {
     const statusColor = checkIfTodoExpired(todo.toBeComplete) ? '#D9534F' : '#5A9AA9';
 
     return (
-        <ScrollView contentContainerStyle={styles.container}>
-            <View style={styles.todoItem}>
-                <Text style={styles.isComplete}>{todo.isComplete ? 'Done' : 'Pending'}</Text>
-                <Text style={styles.title}>{todo.value}</Text>
-                <Text style={styles.description}>{todo.description}</Text>
-                <Text style={styles.date}>
-                    <Feather name="calendar" size={16}/> To be completed
-                    by: {new Date(todo.toBeComplete).toLocaleString()}
-                </Text>
-                <Text style={styles.date}>
-                    <Feather name="clock" size={16}/> Created on: {new Date(todo.created).toLocaleString()}
-                </Text>
-                <Text style={[styles.status, {color: statusColor}]}>
-                    <Feather name="check-circle" size={16}/> Status: {statusText}
-                </Text>
-                {todo.reminder && (
-                    <Text style={styles.date}>
-                        <Feather name="bell" size={16}/> Reminder set for: {new Date(todo.reminder).toLocaleString()}
-                    </Text>
-                )}
-                <View style={styles.actions}>
-                    <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
-                        <Feather name="edit" size={20} color="#fff"/>
-                        <Text style={styles.buttonText}>Edit</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-                        <Feather name="trash-2" size={20} color="#fff"/>
-                        <Text style={styles.buttonText}>Delete</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
+        <View style={styles.container}>
+            <ScrollView
+                ref={scrollViewRef}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                onMomentumScrollEnd={handleScroll}
+                contentOffset={{x: currentIndex * width, y: 0}}
+            >
+                {allTodos.map((_, index) => (
+                    <View key={index} style={[styles.todoItem, {width}]}>
+                        <Text style={styles.isComplete}>{todo.isComplete ? 'Done' : 'Pending'}</Text>
+                        <Text style={styles.title}>{todo.value}</Text>
+                        <Text style={styles.description}>{todo.description}</Text>
+                        <Text style={styles.date}>
+                            <Feather name="calendar" size={16}/> To be completed
+                            by: {new Date(todo.toBeComplete).toLocaleString()}
+                        </Text>
+                        <Text style={styles.date}>
+                            <Feather name="clock" size={16}/> Created
+                            on: {new Date(todo.created).toLocaleString()}
+                        </Text>
+                        <Text style={[styles.status, {color: todo.isComplete ? 'green' : statusColor}]}>
+                            <Feather name="check-circle"
+                                     size={16}/> Status: {todo.isComplete ? 'COMPLETED' : statusText}
+                        </Text>
+                        {todo.reminder && (
+                            <Text style={styles.date}>
+                                <Feather name="bell" size={16}/> Reminder set
+                                for: {new Date(todo.reminder).toLocaleString()}
+                            </Text>
+                        )}
+                        <View style={styles.actions}>
+                            <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
+                                <Feather name="edit" size={20} color="#fff"/>
+                                <Text style={styles.buttonText}>Edit</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+                                <Feather name="trash-2" size={20} color="#fff"/>
+                                <Text style={styles.buttonText}>Delete</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                ))}
+            </ScrollView>
             <EditTodoModal
                 openModal={openModal}
                 actionType={'update'}
@@ -203,17 +247,14 @@ const TodoDetailsScreen = ({route}) => {
                 handleUpdate={handleUpdate}
                 handleCloseModal={handleCloseModal}
             />
-        </ScrollView>
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
-        flexGrow: 1,
-        padding: 20,
+        flex: 1,
         backgroundColor: '#879fa6',
-        justifyContent: 'center',
-        alignItems: 'center',
     },
     headerContainer: {
         backgroundColor: '#fff',
@@ -233,12 +274,17 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         borderColor: '#ddd',
     },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     todoItem: {
+        width: width,
         backgroundColor: '#fff',
         borderRadius: 10,
-        padding: 20,
-        marginBottom: 20,
-        width: '90%',
+        padding: 30,
+        marginVertical: 20,
         shadowColor: '#000',
         shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.3,
