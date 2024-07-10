@@ -12,8 +12,9 @@ import {
     handleUpdateTodo
 } from "./functions/functions";
 import {scheduleNotification} from "../utils/notifications";
+import moment from "moment";
 
-const {width} = Dimensions.get('window');
+const {width, height} = Dimensions.get('window');
 
 const TodoDetailsScreen = ({route}) => {
     const {id} = route.params;
@@ -196,17 +197,21 @@ const TodoDetailsScreen = ({route}) => {
                 contentOffset={{x: currentIndex * width, y: 0}}
             >
                 {allTodos.map((_, index) => (
-                    <View key={index} style={[styles.todoItem, {width}]}>
+                    <View key={index} style={[styles.todoItem]}>
                         <Text style={styles.isComplete}>{todo.isComplete ? 'Done' : 'Pending'}</Text>
                         <Text style={styles.title}>{todo.value}</Text>
-                        <Text style={styles.description}>{todo.description}</Text>
+                        <View style={styles.descriptionView}>
+                            <ScrollView contentContainerStyle={{flexGrow: 1}}>
+                                <Text style={styles.description}>{todo.description}</Text>
+                            </ScrollView>
+                        </View>
                         <Text style={styles.date}>
                             <Feather name="calendar" size={16}/> To be completed
-                            by: {new Date(todo.toBeComplete).toLocaleString()}
+                            by: {moment(todo.toBeComplete).format('ll')}
                         </Text>
                         <Text style={styles.date}>
                             <Feather name="clock" size={16}/> Created
-                            on: {new Date(todo.created).toLocaleString()}
+                            on: {moment(todo.created).format('ll')}
                         </Text>
                         <Text style={[styles.status, {color: todo.isComplete ? 'green' : statusColor}]}>
                             <Feather name="check-circle"
@@ -215,7 +220,7 @@ const TodoDetailsScreen = ({route}) => {
                         {todo.reminder && (
                             <Text style={styles.date}>
                                 <Feather name="bell" size={16}/> Reminder set
-                                for: {new Date(todo.reminder).toLocaleString()}
+                                for: {moment(todo.reminder).format('lll')}
                             </Text>
                         )}
                         <View style={styles.actions}>
@@ -280,15 +285,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     todoItem: {
-        width: width,
+        width: width * 0.9,
         backgroundColor: '#fff',
         borderRadius: 10,
-        padding: 30,
-        marginVertical: 20,
+        padding: 20,
+        margin: width * 0.05,
         shadowColor: '#000',
         shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.3,
-        shadowRadius: 2,
+        shadowRadius: 20,
         elevation: 5,
     },
     title: {
@@ -298,11 +303,18 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         textAlign: 'center',
     },
+    descriptionView: {
+        height: height * 0.25,
+        borderRadius: 5,
+        borderColor: 'gray',
+        borderWidth: 0.5,
+        marginVertical:10,
+    },
     description: {
         fontSize: 16,
+        margin:5,
         color: '#666',
-        marginBottom: 15,
-        textAlign: 'center',
+        textAlign: 'justify',
     },
     date: {
         fontSize: 14,
