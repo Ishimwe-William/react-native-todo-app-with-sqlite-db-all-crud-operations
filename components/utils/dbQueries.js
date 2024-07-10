@@ -6,6 +6,14 @@ export const getTodoById = async (db, id) => {
     return await db.getAllAsync('SELECT * FROM todos where todos.id = ?', id);
 };
 
+export const getExpiredIncompleteTodos = async (db) => {
+    const now = new Date().getTime();
+    return await db.getAllAsync(
+        'SELECT * FROM todos WHERE isComplete = 0 AND reminder IS NOT NULL AND toBeComplete <= ?',
+        [now]
+    );
+};
+
 export const addTodo = async (
     db,
     value,
@@ -32,6 +40,12 @@ export const updateTodo = async (db, id, value, description, isComplete, toBeCom
             reminder,
             id,
         ]
+    );
+};
+
+export const completeTodo = async (db, id) => {
+    return await db.runAsync(
+        'UPDATE todos SET isComplete = not isComplete WHERE id = ?', [id]
     );
 };
 
