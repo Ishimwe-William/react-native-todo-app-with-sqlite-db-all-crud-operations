@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { View, ScrollView, Text, FlatList } from 'react-native';
-import { getAllTodos } from  '../utils/dbQueries';
+import { getAllTodos } from '../utils/db/dbQueries';
 import { useSQLiteContext } from 'expo-sqlite';
 
 const ViewTodosScreen = () => {

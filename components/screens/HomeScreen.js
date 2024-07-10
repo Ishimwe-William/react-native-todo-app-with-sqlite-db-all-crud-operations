@@ -6,7 +6,7 @@ import {
     TouchableOpacity,
     Animated,
 } from 'react-native';
-import {deleteTodo} from '../utils/dbQueries';
+import {deleteTodo} from '../utils/db/dbQueries';
 import {useSQLiteContext} from 'expo-sqlite';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';

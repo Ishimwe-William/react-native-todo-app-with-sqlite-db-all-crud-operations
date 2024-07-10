@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, Button } from 'react-native';
-import { getAllTodos, deleteTodo } from  '../utils/dbQueries';
+import { getAllTodos, deleteTodo } from '../utils/db/dbQueries';
 import { useSQLiteContext } from 'expo-sqlite';
 
 const DeleteTodoScreen = ({ navigation }) => {

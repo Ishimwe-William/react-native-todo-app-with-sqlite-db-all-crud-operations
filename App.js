@@ -8,7 +8,7 @@ import HomeStack from './components/stacks/HomeStack';
 import ViewTodosScreen from './components/screens/ViewTodosScreen';
 import EditTodoScreen from './components/screens/EditTodoScreen';
 import DeleteTodoScreen from './components/screens/DeleteTodoScreen';
-import { migrateDbIfNeeded } from './components/utils/dbMigrations';
+import { migrateDbIfNeeded } from './components/utils/db/dbMigrations';
 import { setupNotificationListener, setupNotifications } from './components/utils/notifications';
 import { registerBackgroundTask } from './components/utils/backgroundTask';
 import { navigationRef } from './components/utils/navigationRef';

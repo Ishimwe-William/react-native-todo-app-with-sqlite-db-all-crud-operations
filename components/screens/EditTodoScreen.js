@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, Button, TextInput } from 'react-native';
-import { getAllTodos, updateTodo } from  '../utils/dbQueries';
+import { getAllTodos, updateTodo } from '../utils/db/dbQueries';
 import { useSQLiteContext } from 'expo-sqlite';
 
 const EditTodoScreen = ({ navigation }) => {

@@ -1,7 +1,7 @@
 import React, {useState, useEffect, useLayoutEffect, useRef} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Dimensions} from 'react-native';
 import {useSQLiteContext} from 'expo-sqlite';
-import {getTodoById, deleteTodo, getAllTodos} from '../utils/dbQueries';
+import {getTodoById, deleteTodo, getAllTodos} from '../utils/db/dbQueries';
 import Feather from 'react-native-vector-icons/Feather';
 import {useNavigation} from '@react-navigation/native';
 import {EditTodoModal} from "./modals/EditTodoModal";
