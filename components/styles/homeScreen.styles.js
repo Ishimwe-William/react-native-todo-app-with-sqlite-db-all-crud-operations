@@ -102,7 +102,7 @@ export const styles = StyleSheet.create({
         color: 'gray',
     },
     title: {
-        fontSize: 24,
+        fontSize: 23,
         fontWeight: '300',
         color: '#5A9AA9',
         marginVertical: 5,

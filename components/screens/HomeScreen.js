@@ -24,7 +24,6 @@ import {
 import {styles} from "../styles/homeScreen.styles";
 import {TodoList} from "./lists/TodoList";
 import {EditTodoModal} from "./modals/EditTodoModal";
-import {hourOptions, minuteOptions} from "./constants/constants";
 
 const HomeScreen = ({route}) => {
     const db = useSQLiteContext();

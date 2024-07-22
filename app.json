@@ -1,13 +1,13 @@
 {
   "expo": {
-    "name": "sqlitecrud",
+    "name": "Bunsen To-Do App",
     "slug": "snack-28018b37-5917-41d7-a68c-441cf7f8ac6c",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/icon_image.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/cropped-splash_image.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -31,7 +31,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./local/components/notification-icon.png",
+          "icon": "./assets/icon_image.png",
           "color": "#ffffff"
         }
       ]
