@@ -4,7 +4,6 @@ import {createDrawerNavigator} from '@react-navigation/drawer';
 import {SQLiteProvider, useSQLiteContext} from 'expo-sqlite';
 import {StatusBar} from 'expo-status-bar';
 import HomeStack from './components/stacks/HomeStack';
-import EditTodoScreen from './components/screens/EditTodoScreen';
 import DeleteTodoScreen from './components/screens/DeleteTodoScreen';
 import {migrateDbIfNeeded} from './components/utils/db/dbMigrations';
 import {setupNotificationListener, setupNotifications} from './components/utils/notifications';
@@ -15,6 +14,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import {Text, View} from "react-native";
 import {DrawerColorProvider} from "./components/contexts/DrawerColorContext";
 import YoutubeStack from "./components/stacks/YoutubeStack";
+import {SignupScreen} from "./components/screens/SignupScreen";
 
 const Drawer = createDrawerNavigator();
 
@@ -74,7 +74,7 @@ const AppContent = () => {
                         ),
                     })}
                 />
-                <Drawer.Screen name="Edit Todo" component={EditTodoScreen}/>
+                <Drawer.Screen name="Sign Up [demo]" component={SignupScreen}/>
                 <Drawer.Screen name="Delete Todo" component={DeleteTodoScreen}/>
             </Drawer.Navigator>
         </NavigationContainer>
