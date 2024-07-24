@@ -45,8 +45,8 @@ export const SignupScreen = () => {
                 justifyContent: "center",
                 marginTop: Constants.statusBarHeight,
             }}>
-            <CircleLogo/>
-            <Text title center>Signup</Text>
+            <CircleLogo source={require('../../assets/icon_image.png')} />
+            <Text title center>Sign Up</Text>
             <UserInput
                 name="NAME"
                 value={name}

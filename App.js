@@ -4,7 +4,6 @@ import {createDrawerNavigator} from '@react-navigation/drawer';
 import {SQLiteProvider, useSQLiteContext} from 'expo-sqlite';
 import {StatusBar} from 'expo-status-bar';
 import HomeStack from './components/stacks/HomeStack';
-import DeleteTodoScreen from './components/screens/DeleteTodoScreen';
 import {migrateDbIfNeeded} from './components/utils/db/dbMigrations';
 import {setupNotificationListener, setupNotifications} from './components/utils/notifications';
 import {registerBackgroundTask} from './components/utils/backgroundTask';
@@ -15,6 +14,7 @@ import {Text, View} from "react-native";
 import {DrawerColorProvider} from "./components/contexts/DrawerColorContext";
 import YoutubeStack from "./components/stacks/YoutubeStack";
 import {SignupScreen} from "./components/screens/SignupScreen";
+import {SendHymnNumberToRTDB} from "./components/screens/SendHymnNumberToRTDB";
 
 const Drawer = createDrawerNavigator();
 
@@ -75,7 +75,7 @@ const AppContent = () => {
                     })}
                 />
                 <Drawer.Screen name="Sign Up [demo]" component={SignupScreen}/>
-                <Drawer.Screen name="Delete Todo" component={DeleteTodoScreen}/>
+                <Drawer.Screen name="Send Data to RTDB" component={SendHymnNumberToRTDB}/>
             </Drawer.Navigator>
         </NavigationContainer>
     );
