@@ -1,4 +1,4 @@
-import {addTodo, completeTodo, getAllTodos, getTodoById, updateTodo} from "../../utils/dbQueries";
+import {addTodo, completeTodo, getAllTodos, getTodoById, updateTodo} from "../../utils/db/dbQueries";
 import moment from "moment";
 import {Alert} from "react-native";
 

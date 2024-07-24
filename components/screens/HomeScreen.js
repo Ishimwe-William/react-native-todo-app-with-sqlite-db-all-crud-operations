@@ -6,7 +6,7 @@ import {
     TouchableOpacity,
     Animated,
 } from 'react-native';
-import {deleteTodo} from '../utils/dbQueries';
+import {deleteTodo} from '../utils/db/dbQueries';
 import {useSQLiteContext} from 'expo-sqlite';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -24,7 +24,6 @@ import {
 import {styles} from "../styles/homeScreen.styles";
 import {TodoList} from "./lists/TodoList";
 import {EditTodoModal} from "./modals/EditTodoModal";
-import {hourOptions, minuteOptions} from "./constants/constants";
 
 const HomeScreen = ({route}) => {
     const db = useSQLiteContext();
