@@ -3,7 +3,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import {SQLiteProvider, useSQLiteContext} from 'expo-sqlite';
 import {StatusBar} from 'expo-status-bar';
-import HomeStack from './components/stacks/HomeStack';
+import {HomeStack} from './components/stacks/HomeStack';
 import {migrateDbIfNeeded} from './components/utils/db/dbMigrations';
 import {setupNotificationListener, setupNotifications} from './components/utils/notifications';
 import {registerBackgroundTask} from './components/utils/backgroundTask';
@@ -12,9 +12,9 @@ import * as Notifications from "expo-notifications";
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import {Text, View} from "react-native";
 import {DrawerColorProvider} from "./components/contexts/DrawerColorContext";
-import YoutubeStack from "./components/stacks/YoutubeStack";
+import {YoutubeStack} from "./components/stacks/YoutubeStack";
 import {SignupScreen} from "./components/screens/SignupScreen";
-import {SendHymnNumberToRTDB} from "./components/screens/SendHymnNumberToRTDB";
+import {HymnStack} from "./components/stacks/HymnStack";
 
 const Drawer = createDrawerNavigator();
 
@@ -75,7 +75,7 @@ const AppContent = () => {
                     })}
                 />
                 <Drawer.Screen name="Sign Up [demo]" component={SignupScreen}/>
-                <Drawer.Screen name="Send Data to RTDB" component={SendHymnNumberToRTDB}/>
+                <Drawer.Screen name="Send Data to RTDB" component={HymnStack}/>
             </Drawer.Navigator>
         </NavigationContainer>
     );

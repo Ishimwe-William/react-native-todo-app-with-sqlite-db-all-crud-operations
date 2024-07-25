@@ -1,11 +1,12 @@
-import {ScrollView, View} from "react-native";
-import Text from "@kaloraat/react-native-text"
-import {UserInput} from "../auth/UserInput";
-import Constants from "expo-constants";
-import {useState} from "react";
-import {CircleLogo} from "../auth/CircleLogo";
-import {SubmitButton} from "../auth/SubmitButton";
-import {SuccessPopupMessage} from "../auth/SuccessPopupMessage";
+import React, {useState} from 'react';
+import {ScrollView, View} from 'react-native';
+import {CircleLogo} from '../auth/CircleLogo';
+import {UserInput} from '../auth/UserInput';
+import {SubmitButton} from '../auth/SubmitButton';
+import {SuccessPopupMessage} from '../auth/SuccessPopupMessage';
+import {ref, set} from 'firebase/database';
+import {database} from "../firebase/firebaseConfig";
+import {useHeaderOptions} from "../hooks/useHeaderOptions";
 
 export const SendHymnNumberToRTDB = () => {
     const [isLoading, setIsLoading] = useState(false);
@@ -16,9 +17,9 @@ export const SendHymnNumberToRTDB = () => {
         hymn3: '',
     });
     const [hymns, setHymns] = useState({
-        hymn1: "",
-        hymn2: "",
-        hymn3: "",
+        hymn1: '',
+        hymn2: '',
+        hymn3: '',
     });
 
     const validateFields = () => {
@@ -36,29 +37,21 @@ export const SendHymnNumberToRTDB = () => {
             return isValid;
         }
 
-        if (!/^\d+$/.test(hymns.hymn1) && hymns.hymn1) {
-            newErrors.hymn1 = 'Hymn 1 input should be numeric';
-            isValid = false;
-        } else if (parseInt(hymns.hymn1) < 1 || parseInt(hymns.hymn1) > 2000) {
-            newErrors.hymn1 = 'Hymn 1 must be between 1 and 2000';
-            isValid = false;
-        }
+        const hymnValidation = (hymn, key) => {
+            if (hymn) {
+                if (!/^\d+$/.test(hymn)) {
+                    newErrors[key] = `${key.toUpperCase()} input should be numeric`;
+                    isValid = false;
+                } else if (parseInt(hymn) < 1 || parseInt(hymn) > 2000) {
+                    newErrors[key] = `${key.toUpperCase()} must be between 1 and 2000`;
+                    isValid = false;
+                }
+            }
+        };
 
-        if (!/^\d+$/.test(hymns.hymn2) && hymns.hymn2) {
-            newErrors.hymn2 = 'Hymn 2 input should be numeric';
-            isValid = false;
-        } else if (parseInt(hymns.hymn2) < 1 || parseInt(hymns.hymn2) > 2000) {
-            newErrors.hymn2 = 'Hymn 2 must be between 1 and 2000';
-            isValid = false;
-        }
-
-       else if (!/^\d+$/.test(hymns.hymn3) && hymns.hymn3) {
-            newErrors.hymn3 = 'Hymn 3 input should be numeric';
-            isValid = false;
-        } else if (parseInt(hymns.hymn3) < 1 || parseInt(hymns.hymn3) > 2000) {
-            newErrors.hymn3 = 'Hymn 3 must be between 1 and 2000';
-            isValid = false;
-        }
+        hymnValidation(hymns.hymn1, 'hymn1');
+        hymnValidation(hymns.hymn2, 'hymn2');
+        hymnValidation(hymns.hymn3, 'hymn3');
 
         setErrors(newErrors);
         return isValid;
@@ -66,11 +59,12 @@ export const SendHymnNumberToRTDB = () => {
 
     const handleCleanInputs = () => {
         setHymns({
-            hymn1: "",
-            hymn2: "",
-            hymn3: "",
-        })
-    }
+            hymn1: '',
+            hymn2: '',
+            hymn3: '',
+        });
+    };
+
     const handleOnChange = (name, value) => {
         setHymns((prevState) => ({
             ...prevState,
@@ -82,16 +76,14 @@ export const SendHymnNumberToRTDB = () => {
         }));
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (validateFields()) {
             setIsLoading(true);
             try {
-                // Todo: submission logic here
-
-                // Show success message
+                const hymnsRef = ref(database, 'hymns');
+                await set(hymnsRef, hymns);
                 setShowSuccess(true);
 
-                // Hide success message after 4 seconds
                 setTimeout(() => {
                     setShowSuccess(false);
                 }, 7000);
@@ -105,45 +97,44 @@ export const SendHymnNumberToRTDB = () => {
         }
     };
 
+    useHeaderOptions({title:"Hymn Numbers"});
+
     return (
-        <ScrollView contentContainerStyle=
-                        {{
-                            flexGrow: 1,
-                            justifyContent: 'center',
-                            marginTop: Constants.statusBarHeight
-                        }}>
-            {showSuccess && (
-                <SuccessPopupMessage text={"Hymn numbers sent successfully!"}/>
-            )}
+        <ScrollView
+            contentContainerStyle={{
+                flexGrow: 1,
+                justifyContent: 'center',
+            }}
+        >
+            {showSuccess && <SuccessPopupMessage text="Hymn numbers sent successfully!"/>}
             <CircleLogo source={require('../../assets/music_note.png')}/>
-            <Text title center>Hymn Number</Text>
-            <View style={{marginTop: 30}}>
+            <View style={{marginTop: 10}}>
                 <UserInput
                     name="hymn1"
-                    label='HYMN 1'
-                    value={hymns.hymn1.toString()}
-                    setValue={(value) => handleOnChange("hymn1", value)}
-                    keyboardType='numeric'
+                    label="HYMN 1"
+                    value={hymns.hymn1}
+                    setValue={(value) => handleOnChange('hymn1', value)}
+                    keyboardType="numeric"
                     error={errors.hymn1}
                 />
                 <UserInput
                     name="hymn2"
-                    label='HYMN 2'
-                    value={hymns.hymn2.toString()}
-                    setValue={(value) => handleOnChange("hymn2", value)}
-                    keyboardType='numeric'
+                    label="HYMN 2"
+                    value={hymns.hymn2}
+                    setValue={(value) => handleOnChange('hymn2', value)}
+                    keyboardType="numeric"
                     error={errors.hymn2}
                 />
                 <UserInput
-                    name='hymn3'
-                    label='HYMN 3'
-                    value={hymns.hymn3.toString()}
-                    setValue={(value) => handleOnChange("hymn3", value)}
-                    keyboardType='numeric'
+                    name="hymn3"
+                    label="HYMN 3"
+                    value={hymns.hymn3}
+                    setValue={(value) => handleOnChange('hymn3', value)}
+                    keyboardType="numeric"
                     error={errors.hymn3}
                 />
             </View>
-            <SubmitButton title={"Set Hymns"} handleSubmit={handleSubmit} loading={isLoading}/>
+            <SubmitButton title="Set Hymns" handleSubmit={handleSubmit} loading={isLoading}/>
         </ScrollView>
-    )
-}
+    );
+};

@@ -75,14 +75,14 @@ export const showAlert = (title, message) =>
         [
             {
                 text: 'Cancel',
-                onPress: () => Alert.alert('Cancel Pressed'),
+                onPress: () => console.log('Cancel Pressed'),
                 style: 'cancel',
             },
         ],
         {
             cancelable: true,
             onDismiss: () =>
-                Alert.alert(
+                console.log(
                     'This alert was dismissed by tapping outside of the alert dialog.'
                 ),
         }
@@ -140,4 +140,13 @@ export const calculateReminderHrsAndMin = (toBeComplete, reminder) => {
         reminderHrs: diffHours,
         reminderMins: diffMinutes
     };
+};
+
+export const handleRateClick = () => {
+    showAlert('Rate us', 'This feature not yet implemented');
+};
+
+export const handleMenuClick = () => {
+    showAlert('Menu', 'This feature not yet implemented');
+    console.log('open menu');
 };

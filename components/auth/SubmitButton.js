@@ -10,7 +10,7 @@ export const SubmitButton = (
 
     return (
         <TouchableOpacity
-            onPress={handleSubmit}
+            onPress={!loading ? handleSubmit : null}
             style={{
                 backgroundColor: '#5A9AA9',
                 height: 50,

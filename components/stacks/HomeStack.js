@@ -6,7 +6,7 @@ import {NavOptions} from '../utils/options'
 
 const Stack = createStackNavigator();
 
-const HomeStack = () => {
+export const HomeStack = () => {
   return (
     <Stack.Navigator>
       <Stack.Screen name="Home" component={HomeScreen} screenOptions={NavOptions}/>
@@ -15,4 +15,3 @@ const HomeStack = () => {
   );
 };
 
-export default HomeStack;
