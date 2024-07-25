@@ -18,8 +18,8 @@ import {
     checkIfTodoExpired,
     fetchAllTodos,
     handleCompleteTodo,
-    handleCreateTodo, handleRescheduleTodo,
-    handleUpdateTodo, showAlert
+    handleCreateTodo, handleMenuClick, handleRateClick, handleRescheduleTodo,
+    handleUpdateTodo
 } from "./functions/functions";
 import {styles} from "../styles/homeScreen.styles";
 import {TodoList} from "./lists/TodoList";
@@ -101,7 +101,7 @@ const HomeScreen = ({route}) => {
             },
             headerTitleAlign: 'center',
             headerTitle: () => (
-                <View style={{flex: 1, alignItems: 'center'}}>
+                <View style={{flex: 1, justifyContent: 'center'}}>
                     <Text style={styles.title}>All ToDos</Text>
                 </View>
             ),
@@ -162,16 +162,6 @@ const HomeScreen = ({route}) => {
             duration: 500,
             useNativeDriver: true,
         }).start();
-    };
-
-
-    const handleRateClick = () => {
-        showAlert('Rate us', 'This feature not yet implemented');
-    };
-
-    const handleMenuClick = () => {
-        showAlert('Menu', 'This feature not yet implemented');
-        console.log('open menu');
     };
 
     const handleCreate = async () => {

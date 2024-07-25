@@ -23,6 +23,7 @@
     "expo-sqlite": "~14.0.4",
     "expo-status-bar": "~1.12.1",
     "expo-task-manager": "~11.8.2",
+    "firebase": "^10.12.4",
     "moment": "*",
     "react": "18.2.0",
     "react-native": "0.74.2",

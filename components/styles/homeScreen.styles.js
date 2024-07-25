@@ -13,7 +13,7 @@ export const styles = StyleSheet.create({
     },
     headerIcon: {
         color: '#5A9AA9',
-        paddingHorizontal: 15,
+        paddingHorizontal: 10,
     },
     scrollViewContent: {
         flexGrow: 1,
@@ -105,9 +105,9 @@ export const styles = StyleSheet.create({
         fontSize: 23,
         fontWeight: '300',
         color: '#5A9AA9',
-        marginVertical: 5,
+        margin: 2,
         textAlign: 'center',
-        padding: 3,
+        padding: 5,
         borderRadius: 10,
         borderWidth: 2,
         borderColor: '#ddd',

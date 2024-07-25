@@ -1,14 +1,14 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import {NavOptions} from '../utils/options'
-import {YoutubeWebView} from "../screens/YoutubeWebView";
+import {SendHymnNumberToRTDB} from "../screens/SendHymnNumberToRTDB";
 
 const Stack = createStackNavigator();
 
-export const YoutubeStack = () => {
+export const HymnStack = () => {
     return (
         <Stack.Navigator>
-            <Stack.Screen name="Youtube" component={YoutubeWebView} screenOptions={NavOptions}/>
+            <Stack.Screen name="Hymn" component={SendHymnNumberToRTDB} screenOptions={NavOptions}/>
         </Stack.Navigator>
     );
 };
