@@ -15,6 +15,7 @@ import {DrawerColorProvider} from "./components/contexts/DrawerColorContext";
 import {YoutubeStack} from "./components/stacks/YoutubeStack";
 import {SignupScreen} from "./components/screens/SignupScreen";
 import {HymnStack} from "./components/stacks/HymnStack";
+import {AboutDeveloperStack} from "./components/stacks/AboutDeveloperStack";
 
 const Drawer = createDrawerNavigator();
 
@@ -76,6 +77,7 @@ const AppContent = () => {
                 />
                 <Drawer.Screen name="Sign Up [demo]" component={SignupScreen}/>
                 <Drawer.Screen name="Send Data to RTDB" component={HymnStack}/>
+                <Drawer.Screen name="About Developer" component={AboutDeveloperStack}/>
             </Drawer.Navigator>
         </NavigationContainer>
     );
