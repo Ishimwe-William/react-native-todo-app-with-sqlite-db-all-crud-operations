@@ -16,6 +16,7 @@ import {YoutubeStack} from "./components/stacks/YoutubeStack";
 import {SignupScreen} from "./components/screens/SignupScreen";
 import {HymnStack} from "./components/stacks/HymnStack";
 import {AboutDeveloperStack} from "./components/stacks/AboutDeveloperStack";
+import {loginAsAdmin, logoutAdmin} from "./components/firebase/firebaseConfig";
 
 const Drawer = createDrawerNavigator();
 
@@ -33,6 +34,10 @@ const AppContent = () => {
         };
         askPermissions();
         registerBackgroundTask();
+
+        logoutAdmin();
+        loginAsAdmin();
+
     }, [db]);
 
     return (
