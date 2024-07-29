@@ -1,17 +1,19 @@
 import React, {useEffect, useState} from 'react';
-import {ScrollView, View} from 'react-native';
+import {Alert, ScrollView, View} from 'react-native';
 import {CircleLogo} from '../auth/CircleLogo';
 import {UserInput} from '../auth/UserInput';
 import {SubmitButton} from '../auth/SubmitButton';
 import {SuccessPopupMessage} from '../auth/SuccessPopupMessage';
 import {ref, set, onValue} from 'firebase/database';
-import {database} from "../firebase/firebaseConfig";
+import {auth, database} from "../firebase/firebaseConfig";
 import {useHeaderOptions} from "../hooks/useHeaderOptions";
 import {useIsFocused} from "@react-navigation/native";
+import {onAuthStateChanged} from "firebase/auth";
 
 export const SendHymnNumberToRTDB = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
+    const [user, setUser] = useState(null);
     const isFocused = useIsFocused();
     const [errors, setErrors] = useState({
         hymn1: '',
@@ -23,6 +25,14 @@ export const SendHymnNumberToRTDB = () => {
         hymn2: '',
         hymn3: '',
     });
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            setUser(user);
+        });
+
+        return () => unsubscribe();
+    }, []);
 
     // Fetch hymns from Firebase
     useEffect(() => {
@@ -93,6 +103,12 @@ export const SendHymnNumberToRTDB = () => {
     };
 
     const handleSubmit = async () => {
+
+        if (!user) {
+            Alert.alert("Error", "Not authorized to submit hymn numbers.");
+            return;
+        }
+
         if (validateFields()) {
             setIsLoading(true);
             try {
@@ -107,6 +123,7 @@ export const SendHymnNumberToRTDB = () => {
                 handleCleanInputs();
             } catch (e) {
                 console.log(e);
+                Alert.alert("Error", "Failed to submit hymn numbers.");
             } finally {
                 setIsLoading(false);
             }
