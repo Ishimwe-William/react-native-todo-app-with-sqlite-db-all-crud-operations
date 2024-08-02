@@ -3,9 +3,11 @@ import {ScrollView} from 'react-native';
 import Text from '@kaloraat/react-native-text';
 import {UserInput} from "../auth/UserInput";
 import {SubmitButton} from "../auth/SubmitButton";
-import Constants from 'expo-constants';
 import axios from "axios";
 import {CircleLogo} from "../auth/CircleLogo";
+import {LineTextLine} from "../auth/LineTextLine";
+import {SignupWith3rdPartiesButton} from "../auth/SignupWith3rdPartiesButton";
+import {TermsPolicyLink} from "../auth/TermsPolicy";
 
 export const SignupScreen = () => {
     const [name, setName] = useState("");
@@ -43,9 +45,9 @@ export const SignupScreen = () => {
             contentContainerStyle={{
                 flexGrow: 1,
                 justifyContent: "center",
-                marginTop: Constants.statusBarHeight,
+                // marginTop: 10,
             }}>
-            <CircleLogo source={require('../../assets/icon_image.png')} />
+            <CircleLogo source={require('../../assets/icon_image.png')}/>
             <Text title center>Sign Up</Text>
             <UserInput
                 name="NAME"
@@ -71,6 +73,20 @@ export const SignupScreen = () => {
             />
 
             <SubmitButton title={"Sign Up"} handleSubmit={handleSubmit} loading={isLoading}/>
+            <LineTextLine text={'Or'}/>
+            <SignupWith3rdPartiesButton
+                source={require('../auth/img/google-logo-6278331_640.png')}
+                title={'Sign up with Google'}
+                handleSubmit={() => console.log('google signup')}
+                loading={false}
+            />
+            <SignupWith3rdPartiesButton
+                source={require('../auth/img/github-6980894_640.png')}
+                title={'Sign up with Github'}
+                handleSubmit={() => console.log('github signup')}
+                loading={false}
+            />
+            <TermsPolicyLink title={'Terms & Policy'} onClick={()=>console.log('Terms clicked')}/>
         </ScrollView>
     )
 }

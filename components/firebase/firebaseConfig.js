@@ -23,7 +23,6 @@ export const auth = initializeAuth(app, {
 export const logoutAdmin = async () => {
     try {
         await signOut(auth);
-        console.log("Admin logged out successfully");
     } catch (error) {
         console.error("Admin logout failed:", error.message);
     }
@@ -39,10 +38,7 @@ export const loginAsAdmin = async () => {
     }
 
     try {
-        console.log("Attempting to log in with email:", adminEmail);
-        const userCredential = await signInWithEmailAndPassword(auth, adminEmail, adminPassword);
-        const user = userCredential.user;
-        console.log("Admin logged in successfully:", user.email);
+        await signInWithEmailAndPassword(auth, adminEmail, adminPassword);
     } catch (error) {
         console.error("Admin login failed:", error.code, error.message);
     }

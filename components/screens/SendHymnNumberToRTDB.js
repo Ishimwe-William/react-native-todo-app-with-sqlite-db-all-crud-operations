@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {Alert, ScrollView, View} from 'react-native';
 import {CircleLogo} from '../auth/CircleLogo';
 import {UserInput} from '../auth/UserInput';
@@ -9,12 +9,16 @@ import {auth, database} from "../firebase/firebaseConfig";
 import {useHeaderOptions} from "../hooks/useHeaderOptions";
 import {useIsFocused} from "@react-navigation/native";
 import {onAuthStateChanged} from "firebase/auth";
+import {NetworkContext} from '../contexts/NetworkContext';
+import {ErrorPopupMessage} from "../auth/ErrorPopupMessage"; // Import the NetworkContext
 
 export const SendHymnNumberToRTDB = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
+    const [showError, setShowError] = useState(false);
     const [user, setUser] = useState(null);
     const isFocused = useIsFocused();
+    const isConnected = useContext(NetworkContext);
     const [errors, setErrors] = useState({
         hymn1: '',
         hymn2: '',
@@ -102,10 +106,19 @@ export const SendHymnNumberToRTDB = () => {
         }));
     };
 
+
     const handleSubmit = async () => {
 
         if (!user) {
             Alert.alert("Error", "Not authorized to submit hymn numbers.");
+            return;
+        }
+
+        if (!isConnected) {
+            setShowError(true);
+            setTimeout(() => {
+                setShowError(false);
+            }, 7000);
             return;
         }
 
@@ -140,6 +153,7 @@ export const SendHymnNumberToRTDB = () => {
             }}
         >
             {showSuccess && <SuccessPopupMessage text="Hymn numbers sent successfully!"/>}
+            {showError && <ErrorPopupMessage text="No network connection. Please try again later."/>}
             <CircleLogo source={require('../../assets/music_note.png')}/>
             <View style={{marginTop: 10}}>
                 <UserInput

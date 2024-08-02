@@ -17,6 +17,7 @@ import {SignupScreen} from "./components/screens/SignupScreen";
 import {HymnStack} from "./components/stacks/HymnStack";
 import {AboutDeveloperStack} from "./components/stacks/AboutDeveloperStack";
 import {loginAsAdmin, logoutAdmin} from "./components/firebase/firebaseConfig";
+import {NetworkProvider} from "./components/contexts/NetworkContext";
 
 const Drawer = createDrawerNavigator();
 
@@ -92,8 +93,10 @@ export default function App() {
     return (
         <SQLiteProvider databaseName="test.db" onInit={migrateDbIfNeeded}>
             <DrawerColorProvider>
-                <AppContent/>
-                <StatusBar style="auto"/>
+                <NetworkProvider>
+                    <AppContent/>
+                    <StatusBar style="auto"/>
+                </NetworkProvider>
             </DrawerColorProvider>
         </SQLiteProvider>
     );

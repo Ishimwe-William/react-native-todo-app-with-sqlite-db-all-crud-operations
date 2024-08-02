@@ -28,7 +28,7 @@ export const UserInput = (
             <TextInput
                 style={{
                     borderBottomWidth: 0.5,
-                    height: 40,
+                    height: 30,
                     borderBottomColor: error ? errorColor : successColor,
                     marginBottom: 30,
                 }}
