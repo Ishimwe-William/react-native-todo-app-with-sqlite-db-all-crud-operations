@@ -1,16 +1,18 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import {CircleLogo} from '../auth/CircleLogo';
 import {UserInput} from '../auth/UserInput';
 import {SubmitButton} from '../auth/SubmitButton';
 import {SuccessPopupMessage} from '../auth/SuccessPopupMessage';
-import {ref, set} from 'firebase/database';
+import {ref, set, onValue} from 'firebase/database';
 import {database} from "../firebase/firebaseConfig";
 import {useHeaderOptions} from "../hooks/useHeaderOptions";
+import {useIsFocused} from "@react-navigation/native";
 
 export const SendHymnNumberToRTDB = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
+    const isFocused = useIsFocused();
     const [errors, setErrors] = useState({
         hymn1: '',
         hymn2: '',
@@ -21,6 +23,20 @@ export const SendHymnNumberToRTDB = () => {
         hymn2: '',
         hymn3: '',
     });
+
+    // Fetch hymns from Firebase
+    useEffect(() => {
+        const hymnsRef = ref(database, 'hymns');
+        const unsubscribe = onValue(hymnsRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                setHymns(data);
+            }
+        });
+
+        // Cleanup subscription on unmount
+        return () => unsubscribe();
+    }, [isFocused]);
 
     const validateFields = () => {
         let isValid = true;
@@ -97,7 +113,7 @@ export const SendHymnNumberToRTDB = () => {
         }
     };
 
-    useHeaderOptions({title:"Hymn Numbers"});
+    useHeaderOptions({title: "Hymn Numbers"});
 
     return (
         <ScrollView
